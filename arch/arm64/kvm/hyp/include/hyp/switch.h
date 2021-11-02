@@ -30,8 +30,12 @@
 #include <asm/processor.h>
 #include <asm/thread_info.h>
 
-extern struct exception_table_entry __start___kvm_ex_table;
-extern struct exception_table_entry __stop___kvm_ex_table;
+struct kvm_exception_table_entry {
+	int insn, fixup;
+};
+
+extern struct kvm_exception_table_entry __start___kvm_ex_table;
+extern struct kvm_exception_table_entry __stop___kvm_ex_table;
 
 /* Check whether the FP regs were dirtied while in the host-side run loop: */
 static inline bool update_fp_enabled(struct kvm_vcpu *vcpu)
@@ -92,11 +96,15 @@ static inline void __activate_traps_common(struct kvm_vcpu *vcpu)
 		write_sysreg(0, pmselr_el0);
 		write_sysreg(ARMV8_PMU_USERENR_MASK, pmuserenr_el0);
 	}
+
+	vcpu->arch.mdcr_el2_host = read_sysreg(mdcr_el2);
 	write_sysreg(vcpu->arch.mdcr_el2, mdcr_el2);
 }
 
-static inline void __deactivate_traps_common(void)
+static inline void __deactivate_traps_common(struct kvm_vcpu *vcpu)
 {
+	write_sysreg(vcpu->arch.mdcr_el2_host, mdcr_el2);
+
 	write_sysreg(0, hstr_el2);
 	if (kvm_arm_support_pmu_v3())
 		write_sysreg(0, pmuserenr_el0);
@@ -506,7 +514,7 @@ static inline void __kvm_unexpected_el2_exception(void)
 {
 	extern char __guest_exit_panic[];
 	unsigned long addr, fixup;
-	struct exception_table_entry *entry, *end;
+	struct kvm_exception_table_entry *entry, *end;
 	unsigned long elr_el2 = read_sysreg(elr_el2);
 
 	entry = &__start___kvm_ex_table;

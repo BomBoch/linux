@@ -8,6 +8,7 @@
 #define __ARM_KVM_ASM_H__
 
 #include <asm/hyp_image.h>
+#include <asm/insn.h>
 #include <asm/virt.h>
 
 #define ARM_EXIT_WITH_SERROR_BIT  31
@@ -58,11 +59,11 @@
 #define __KVM_HOST_SMCCC_FUNC___vgic_v3_save_aprs		13
 #define __KVM_HOST_SMCCC_FUNC___vgic_v3_restore_aprs		14
 #define __KVM_HOST_SMCCC_FUNC___pkvm_init			15
-#define __KVM_HOST_SMCCC_FUNC___pkvm_create_mappings		16
+#define __KVM_HOST_SMCCC_FUNC___pkvm_host_share_hyp		16
 #define __KVM_HOST_SMCCC_FUNC___pkvm_create_private_mapping	17
 #define __KVM_HOST_SMCCC_FUNC___pkvm_cpu_set_vector		18
 #define __KVM_HOST_SMCCC_FUNC___pkvm_prot_finalize		19
-#define __KVM_HOST_SMCCC_FUNC___pkvm_mark_hyp			20
+#define __KVM_HOST_SMCCC_FUNC___kvm_adjust_pc			20
 
 #ifndef __ASSEMBLY__
 
@@ -201,12 +202,14 @@ extern void __kvm_timer_set_cntvoff(u64 cntvoff);
 
 extern int __kvm_vcpu_run(struct kvm_vcpu *vcpu);
 
+extern void __kvm_adjust_pc(struct kvm_vcpu *vcpu);
+
 extern u64 __vgic_v3_get_gic_config(void);
 extern u64 __vgic_v3_read_vmcr(void);
 extern void __vgic_v3_write_vmcr(u32 vmcr);
 extern void __vgic_v3_init_lrs(void);
 
-extern u32 __kvm_get_mdcr_el2(void);
+extern u64 __kvm_get_mdcr_el2(void);
 
 #define __KVM_EXTABLE(from, to)						\
 	"	.pushsection	__kvm_ex_table, \"a\"\n"		\
@@ -260,9 +263,10 @@ extern u32 __kvm_get_mdcr_el2(void);
 
 /*
  * KVM extable for unexpected exceptions.
- * In the same format _asm_extable, but output to a different section so that
- * it can be mapped to EL2. The KVM version is not sorted. The caller must
- * ensure:
+ * Create a struct kvm_exception_table_entry output to a section that can be
+ * mapped by EL2. The table is not sorted.
+ *
+ * The caller must ensure:
  * x18 has the hypervisor value to allow any Shadow-Call-Stack instrumented
  * code to write to it, and that SPSR_EL2 and ELR_EL2 are restored by the fixup.
  */

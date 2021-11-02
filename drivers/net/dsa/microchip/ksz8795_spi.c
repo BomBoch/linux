@@ -41,6 +41,9 @@ static int ksz8795_spi_probe(struct spi_device *spi)
 	int i, ret = 0;
 
 	ksz8 = devm_kzalloc(&spi->dev, sizeof(struct ksz8), GFP_KERNEL);
+	if (!ksz8)
+		return -ENOMEM;
+
 	ksz8->priv = spi;
 
 	dev = ksz_switch_alloc(&spi->dev, ksz8);
@@ -91,6 +94,8 @@ static int ksz8795_spi_remove(struct spi_device *spi)
 	if (dev)
 		ksz_switch_remove(dev);
 
+	spi_set_drvdata(spi, NULL);
+
 	return 0;
 }
 
@@ -98,8 +103,15 @@ static void ksz8795_spi_shutdown(struct spi_device *spi)
 {
 	struct ksz_device *dev = spi_get_drvdata(spi);
 
-	if (dev && dev->dev_ops->shutdown)
+	if (!dev)
+		return;
+
+	if (dev->dev_ops->shutdown)
 		dev->dev_ops->shutdown(dev);
+
+	dsa_switch_shutdown(dev->ds);
+
+	spi_set_drvdata(spi, NULL);
 }
 
 static const struct of_device_id ksz8795_dt_ids[] = {

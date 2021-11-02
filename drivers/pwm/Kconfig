@@ -272,7 +272,7 @@ config PWM_IQS620A
 
 config PWM_JZ4740
 	tristate "Ingenic JZ47xx PWM support"
-	depends on MIPS
+	depends on MIPS || COMPILE_TEST
 	depends on COMMON_CLK
 	select MFD_SYSCON
 	help
@@ -284,7 +284,8 @@ config PWM_JZ4740
 
 config PWM_KEEMBAY
 	tristate "Intel Keem Bay PWM driver"
-	depends on ARCH_KEEMBAY || (ARM64 && COMPILE_TEST)
+	depends on ARCH_KEEMBAY || COMPILE_TEST
+	depends on COMMON_CLK && HAS_IOMEM
 	help
 	  The platform driver for Intel Keem Bay PWM controller.
 
@@ -617,6 +618,15 @@ config PWM_TWL_LED
 
 	  To compile this driver as a module, choose M here: the module
 	  will be called pwm-twl-led.
+
+config PWM_VISCONTI
+	tristate "Toshiba Visconti PWM support"
+	depends on ARCH_VISCONTI || COMPILE_TEST
+	help
+	  PWM Subsystem driver support for Toshiba Visconti SoCs.
+
+	  To compile this driver as a module, choose M here: the module
+	  will be called pwm-visconti.
 
 config PWM_VT8500
 	tristate "vt8500 PWM support"

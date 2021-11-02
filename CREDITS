@@ -971,6 +971,7 @@ D: PowerPC
 N: Daniel Drake
 E: dsd@gentoo.org
 D: USBAT02 CompactFlash support in usb-storage
+D: ZD1211RW wireless driver
 S: UK
 
 N: Oleg Drokin
@@ -1873,6 +1874,11 @@ W: http://atrey.karlin.mff.cuni.cz/~jack/
 S: Krosenska' 543
 S: 181 00 Praha 8
 S: Czech Republic
+
+N: Murali Karicheri
+E: m-karicheri2@ti.com
+D: Keystone NetCP driver
+D: Keystone PCIe host controller driver
 
 N: Jan "Yenya" Kasprzak
 E: kas@fi.muni.cz
